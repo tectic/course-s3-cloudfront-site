@@ -33,15 +33,13 @@ HERE
   }
 }
 
-# resource "aws_s3_bucket" "apex_bucket" {
-#   bucket = "${var.domain}"
+resource "aws_s3_bucket" "apex_bucket" {
+  bucket = "${var.domain}"
 
-
-#   website {
-#     redirect_all_requests_to = "https://www.${var.domain}"
-#   }
-# }
-
+  website {
+    redirect_all_requests_to = "https://www.${var.domain}"
+  }
+}
 
 # resource "aws_acm_certificate" "certificate" {
 #   domain_name               = "www.${var.domain}"
