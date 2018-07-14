@@ -51,7 +51,7 @@ resource "aws_acm_certificate" "cert" {
   validation_method         = "DNS"
 }
 
-resource "aws_route53_record" "www_cert_rec" {
+resource "aws_route53_record" "cert_validation_recs" {
   count   = "${length(aws_acm_certificate.cert.domain_validation_options)}"
   name    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_name")}"
   type    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_type")}"
@@ -59,15 +59,6 @@ resource "aws_route53_record" "www_cert_rec" {
   zone_id = "${aws_route53_zone.zone.id}"
   ttl     = 300
 }
-
-# resource "aws_route53_record" "apex_cert_rec" {
-#   zone_id = "${aws_route53_zone.zone.zone_id}"
-#   name    = "${aws_acm_certificate.cert.domain_validation_options.1.resource_record_name}"
-#   records = ["${aws_acm_certificate.cert.domain_validation_options.1.resource_record_value}"]
-#   type    = "CNAME"
-#   ttl     = "300"
-# }
-
 
 # resource "aws_cloudfront_origin_access_identity" "www_origin_access_identitiy" {}
 # resource "aws_cloudfront_origin_access_identity" "apex_origin_access_identitiy" {}
