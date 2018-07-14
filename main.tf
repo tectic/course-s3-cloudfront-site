@@ -45,10 +45,27 @@ resource "aws_s3_bucket" "apex_bucket" {
   }
 }
 
-# resource "aws_acm_certificate" "certificate" {
-#   domain_name               = "www.${var.domain}"
-#   subject_alternative_names = ["${var.domain}"]
-#   validation_method         = "DNS"
+resource "aws_acm_certificate" "cert" {
+  domain_name               = "www.${var.domain}"
+  subject_alternative_names = ["${var.domain}"]
+  validation_method         = "DNS"
+}
+
+resource "aws_route53_record" "www_cert_rec" {
+  count   = "${length(aws_acm_certificate.cert.domain_validation_options)}"
+  name    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_name")}"
+  type    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_type")}"
+  records = ["${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_value")}"]
+  zone_id = "${aws_route53_zone.zone.id}"
+  ttl     = 300
+}
+
+# resource "aws_route53_record" "apex_cert_rec" {
+#   zone_id = "${aws_route53_zone.zone.zone_id}"
+#   name    = "${aws_acm_certificate.cert.domain_validation_options.1.resource_record_name}"
+#   records = ["${aws_acm_certificate.cert.domain_validation_options.1.resource_record_value}"]
+#   type    = "CNAME"
+#   ttl     = "300"
 # }
 
 
