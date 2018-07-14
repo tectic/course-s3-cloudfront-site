@@ -60,9 +60,8 @@ resource "aws_route53_record" "cert_validation_recs" {
   ttl     = 300
 }
 
-# resource "aws_cloudfront_origin_access_identity" "www_origin_access_identitiy" {}
-# resource "aws_cloudfront_origin_access_identity" "apex_origin_access_identitiy" {}
-
+resource "aws_cloudfront_origin_access_identity" "www_identity" {}
+resource "aws_cloudfront_origin_access_identity" "apex_identity" {}
 
 # resource "aws_cloudfront_distribution" "www_distribution" {
 #   aliases = ["www.${var.domain}"]
