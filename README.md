@@ -102,7 +102,7 @@ We'll be using Route 53 for DNS:
 >
 > AWS S3 website endpoints require public access on buckets. We want to force all visitors to go through CloudFront. In order to prevent access to the site via the S3 website endpoint we create a condition that requries the referer to be a random string. Later, we'll input this same string as a custom header for the S3 origin in CloudFront. The string itself is arbitrary; just use something that is hard to guess.
 
-* Click **Save**
+* Click **Save**.
 
 ### Enable Redirection
 
@@ -116,9 +116,9 @@ We'll be using Route 53 for DNS:
   * Enter `https` for the **Protocol**.
   * Click **Save**.
 
-## TLS Certificate
+## SSL Certificate
 
-In order to use `HTTPS` properly, we'll need a TLS certificate.
+In order to use `HTTPS` properly, we'll need an SSL certificate.
 
 * Browse to the **Certificate Manager** service.
 * Click **Request a Certificate**.
@@ -229,7 +229,7 @@ Save the above as `index.html` locally and then upload it to S3:
 
 ## Conclusion
 
-Distributions can take a long time to build. Time for along coffee break. Once back, continue to monitor them in the **CloudFront** service main **Distributions** screen. Once their status changes from `In Progress` to `Deployed` everything should be ready to go. We can now reach the site via any of the following below URLs:
+Distributions can take a long time to build. Time for a long coffee break. Once back, continue to monitor them in the **CloudFront** service main **Distributions** screen. Once their status changes from `In Progress` to `Deployed` everything should be ready to go. We can now reach the site via any of the following below URLs:
 
 | URL                         | Description                                   |
 | --------------------------- | --------------------------------------------- |
