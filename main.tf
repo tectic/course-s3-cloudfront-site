@@ -41,12 +41,11 @@ resource "aws_s3_bucket" "apex_bucket" {
   }
 }
 
-# resource "aws_acm_certificate" "certificate" {
-#   domain_name               = "www.${var.domain}"
-#   subject_alternative_names = ["${var.domain}"]
-#   validation_method         = "DNS"
-# }
-
+resource "aws_acm_certificate" "certificate" {
+  domain_name               = "www.${var.domain}"
+  subject_alternative_names = ["${var.domain}"]
+  validation_method         = "DNS"
+}
 
 # resource "aws_cloudfront_origin_access_identity" "www_origin_access_identitiy" {}
 # resource "aws_cloudfront_origin_access_identity" "apex_origin_access_identitiy" {}
