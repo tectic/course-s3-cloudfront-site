@@ -51,8 +51,8 @@ resource "aws_acm_certificate" "cert" {
   validation_method         = "DNS"
 }
 
-resource "aws_route53_record" "cert_validation_recs" {
-  count   = "${length(aws_acm_certificate.cert.domain_validation_options)}"
+resource "aws_route53_record" "cert_validation" {
+  count   = 2
   name    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_name")}"
   type    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_type")}"
   records = ["${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_value")}"]
@@ -60,81 +60,62 @@ resource "aws_route53_record" "cert_validation_recs" {
   ttl     = 300
 }
 
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = "${aws_acm_certificate.cert.arn}"
+  validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
+}
+
 resource "aws_cloudfront_origin_access_identity" "www_identity" {}
 resource "aws_cloudfront_origin_access_identity" "apex_identity" {}
 
-# resource "aws_cloudfront_distribution" "www_distribution" {
-#   aliases = ["www.${var.domain}"]
+output "website_endpoint" {
+  value = "${aws_s3_bucket.www_bucket.website_endpoint}"
+}
 
+resource "aws_cloudfront_distribution" "www_distribution" {
+  aliases = ["www.${var.domain}"]
 
-#   default_cache_behavior {
-#     allowed_methods = ["GET", "HEAD"]
-#     cached_methods  = ["GET", "HEAD"]
-#     compress        = true
+  default_cache_behavior {
+    allowed_methods = ["GET", "HEAD"]
+    cached_methods  = ["GET", "HEAD"]
+    compress        = true
 
+    forwarded_values {
+      query_string = false
 
-#     forwarded_values {
-#       query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
 
+    target_origin_id       = "${aws_cloudfront_origin_access_identity.www_identity.id}"
+    viewer_protocol_policy = "redirect-to-https"
+  }
 
-#       cookies {
-#         forward = "none"
-#       }
-#     }
+  default_root_object = "index.html"
+  enabled             = true
 
+  origin {
+    domain_name = "${aws_s3_bucket.www_bucket.website_endpoint}"
+    origin_id   = "${aws_cloudfront_origin_access_identity.www_identity.id}"
 
-#     path_pattern           = "*"
-#     target_origin_id       = "${aws_cloudfront_origin_access_identity.www_origin_access_identitiy.id}"
-#     viewer_protocol_policy = "redirect-to-https"
-#   }
+    custom_origin_config {
+      http_port              = "80"
+      https_port             = "443"
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+    }
+  }
 
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
 
-#   default_root_object = "index.html"
-#   enabled             = true
-
-
-#   default_cache_behavior {
-#     allowed_methods  = ["GET", "HEAD"]
-#     cached_methods   = ["GET", "HEAD"]
-#     compress         = true
-#     path_pattern     = "*"
-#     target_origin_id = "${aws_cloudfront_origin_access_identity.www_origin_access_identitiy.id}"
-
-
-#     forwarded_values {
-#       cookies {
-#         forward      = "none"
-#         query_string = false
-#       }
-#     }
-#   }
-
-
-#   origin {
-#     domain_name = "${aws_s3_bucket.www_bucket.website_endpoint}.${aws_s3_bucket.www_bucket.website_domain}"
-#     origin_id   = "S3-Website-${aws_s3_bucket.www_bucket.website_endpoint}.${aws_s3_bucket.www_bucket.website_domain}"
-
-
-#     custom_origin_config {
-#       http_port              = "80"
-#       https_port             = "443"
-#       origin_protocol_policy = "http-only"
-#       origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
-#     }
-#   }
-
-
-#   restrictions {
-#     geo_restriction {
-#       restriction_type = "none"
-#     }
-#   }
-
-
-#   viewer_certificate {
-#     acm_certificate_arn      = "${aws_acm_certificate.certificate.arn}"
-#     minimum_protocol_version = "TLSv1_2016"
-#     ssl_support_method       = "sni-only"
-#   }
-# }
-
+  viewer_certificate {
+    acm_certificate_arn      = "${aws_acm_certificate_validation.cert.certificate_arn}"
+    minimum_protocol_version = "TLSv1_2016"
+    ssl_support_method       = "sni-only"
+  }
+}
